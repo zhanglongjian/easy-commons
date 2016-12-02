@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:redis="http://www.springframework.org/schema/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+						http://www.springframework.org/schema/jee
+						http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-4.0.xsd
+						http://www.springframework.org/schema/util
+                        http://www.springframework.org/schema/util/spring-util-4.0.xsd
+                        http://www.springframework.org/schema/redis
+        http://www.springframework.org/schema/redis/spring-redis-1.0.xsd"
+	default-lazy-init="true">
+
+	<description>redis 发布 定阅 示例</description>
+
+	<!--属性文件 -->
+	<context:property-placeholder location="classpath*:demo.properties" />
+	<!-- 基础配置，注解声明，注解扫描路径等 -->
+	<import resource="classpath*:/applicationContext-base.xml" />
+	<!--引入基础配置 -->
+	<import resource="classpath*:/applicationContext-redis.xml" />
+
+	<bean id="listener" class="cn.com.easy.redis.RedisMessageListenerService" />
+
+	<redis:listener-container connection-factory="jedisConnectionFactory">
+		<!-- the method attribute can be skipped as the default method name is 
+			"handleMessage" -->
+			<!-- topic代表监听的通道，是一个正规匹配 -->
+		<redis:listener ref="listener" method="handleMessage"
+			topic="*" />
+	</redis:listener-container>
+
+</beans>

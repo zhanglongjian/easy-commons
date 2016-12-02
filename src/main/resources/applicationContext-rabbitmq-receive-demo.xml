@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+						http://www.springframework.org/schema/jee
+						http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-4.0.xsd
+						http://www.springframework.org/schema/rabbit
+						http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd
+						http://www.springframework.org/schema/util
+                        http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+	default-lazy-init="true">
+
+	<description>RabbitMQ示例 接收消息 配置</description>
+	<!--属性文件 -->
+	<context:property-placeholder location="classpath*:demo.properties" />
+	<!-- 基础配置，注解声明，注解扫描路径等 -->
+	<import resource="classpath*:/applicationContext-base.xml" />
+	<!--引入基础配置 -->
+	<import resource="classpath*:/applicationContext-rabbitmq.xml" />
+
+	<!-- auto-delete="true",在监听器退出时，声明的队列将会被删除;exclusive="true",排他锁，声明的队列只能被当前对象使用 -->
+	<rabbit:queue id="queue.test.1" name="queue.test.1"
+		auto-declare="true" declared-by="rabbitAdmin" auto-delete="false"
+		exclusive="false" durable="true" />
+	<!-- -->
+	<rabbit:queue id="queue.test.2" name="queue.test.2"
+		auto-declare="true" declared-by="rabbitAdmin" auto-delete="false"
+		exclusive="false" durable="true" />
+	<!-- -->
+	<rabbit:queue id="queue.test.3" name="queue.test.3"
+		auto-declare="true" declared-by="rabbitAdmin" auto-delete="false"
+		exclusive="false" durable="true" />
+
+	<!-- 接收消息监听器 -->
+	<!-- acknowledge="auto",接收到消息后，服务端会直接删掉，不管消息在客户端有没有处理成功;acknowledge="manual", 
+		服务端会在客户端处理完毕后，反馈处理成功消息后删掉消息 -->
+	<!-- 初始消费者线程数 concurrency="3" -->
+	<!-- 预取数量（一次从RabbitMQ Server上取到的数据数量），prefetch="10" -->
+
+	<rabbit:listener-container id="listner.test.1"
+		error-handler="" acknowledge="auto" concurrency="3" transaction-size="10"
+		prefetch="10" max-concurrency="5" auto-startup="true" advice-chain="adviceChain"
+		auto-declare="true" channel-transacted="true" connection-factory="rabbitConnectionFactory">
+		<rabbit:listener queues="queue.test.1" ref="rabbitmqReceiverTest"
+			method="handTest1Msg" />
+	</rabbit:listener-container>
+
+	<rabbit:listener-container id="listner.test.2"
+		error-handler="" acknowledge="auto" concurrency="3"
+		transaction-size="10" prefetch="10" max-concurrency="5" auto-startup="true"
+		advice-chain="adviceChain" auto-declare="true" channel-transacted="true"
+		connection-factory="rabbitConnectionFactory">
+		<rabbit:listener queues="queue.test.2" ref="rabbitmqReceiverTest"
+			method="handTest2Msg" />
+	</rabbit:listener-container>
+	
+	<rabbit:listener-container id="listner.test.3"
+		error-handler="" acknowledge="auto" concurrency="3"
+		transaction-size="10" prefetch="10" max-concurrency="5" auto-startup="true"
+		advice-chain="adviceChain" auto-declare="true" channel-transacted="true"
+		connection-factory="rabbitConnectionFactory">
+		<rabbit:listener queues="queue.test.3" ref="rabbitmqReceiverTest"
+			method="handTest3Msg" />
+	</rabbit:listener-container>
+	
+</beans>

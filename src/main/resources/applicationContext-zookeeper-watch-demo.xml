@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+						http://www.springframework.org/schema/tx
+						http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+						http://www.springframework.org/schema/jee
+						http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-3.1.xsd
+						http://www.springframework.org/schema/data/mongo
+						http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd"
+	default-lazy-init="true">
+	<!--属性文件 -->
+	<context:property-placeholder
+		location="classpath*:applicationContext-zookeeper-watch-demo.properties" />
+	<!-- 基础配置，注解声明，注解扫描路径等 -->
+	<import resource="classpath*:/applicationContext-base.xml" />
+	<!-- 使用zookeeper节点监听，通知，功能时，要添加这个bean -->
+	<bean id="zookeeperService" class="cn.com.easy.zookeeper.ZooKeeperService">
+		<constructor-arg>
+			<value>${zk.servers}</value>
+		</constructor-arg>
+	</bean>
+
+</beans>

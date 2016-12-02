@@ -1,0 +1,5 @@
+<FindBugsFilter>
+	<Match>
+		<Package name="~cn\.com\.summall.*" />
+	</Match>
+</FindBugsFilter>

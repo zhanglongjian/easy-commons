@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+						http://www.springframework.org/schema/jee
+						http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+						http://www.springframework.org/schema/aop
+						http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-4.0.xsd
+						http://www.springframework.org/schema/rabbit
+						http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd
+						http://www.springframework.org/schema/util
+                        http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+	default-lazy-init="true">
+
+	<description>RabbitMQ 配置</description>
+
+	<!-- RabbitMQ 配置 ,requested-heartbeat(单位毫秒) -->
+	<!-- cache-mode="CONNECTION" ;CONNECTION might be suitable for a listener 
+		container. 使用CONNECTION时，可使用connection-cache-size="5" -->
+		<!--  
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		publisher-confirms="true" host="${rabbit.host}" username="${rabbit.username}"
+		password="${rabbit.password}" port="${rabbit.port}" virtual-host="${rabbit.vhost}"
+		cache-mode="CHANNEL" channel-cache-size="25" requested-heartbeat="10000"
+		connection-timeout="60000" />-->
+		<!-- 集群配置 -->
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		addresses="${rabbit.hosts}" publisher-confirms="true" 
+		username="${rabbit.username}" password="${rabbit.password}"
+		virtual-host="${rabbit.vhost}" cache-mode="CHANNEL"
+		channel-cache-size="25" requested-heartbeat="10000"
+		connection-timeout="60000" />
+	<!-- RabbitMQ Template -->
+	<rabbit:template id="rabbitTemplate"
+		connection-factory="rabbitConnectionFactory" retry-template="retryTemplate" />
+	<!-- retryTemplate start -->
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+		<property name="retryContextCache" ref="mapRetryContextCache" />
+		<property name="retryPolicy">
+			<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+				<property name="maxAttempts" value="3" />
+			</bean>
+		</property>
+	</bean>
+	<bean id="mapRetryContextCache" class="org.springframework.retry.policy.MapRetryContextCache" />
+	<!-- retryTemplate end -->
+
+
+
+	<!-- auto-startup为true时，系统启动时，会自动创建，Exchange、Queue、Binding -->
+	<rabbit:admin id="rabbitAdmin" connection-factory="rabbitConnectionFactory"
+		auto-startup="true" ignore-declaration-exceptions="false" />
+
+
+
+
+	<!-- 消费者监听器，AOP -->
+	<bean id="missingMessageIdAdvice"
+		class="org.springframework.amqp.rabbit.retry.MissingMessageIdAdvice">
+		<constructor-arg index="0" ref="mapRetryContextCache" />
+	</bean>
+	<!-- 重做拦截器 -->
+	<bean id="retryOperationsInterceptor"
+		class="org.springframework.amqp.rabbit.config.StatefulRetryOperationsInterceptorFactoryBean">
+		<property name="retryOperations" ref="retryTemplate" />
+	</bean>
+	<util:list id="adviceChain">
+		<ref bean="missingMessageIdAdvice" />
+		<ref bean="retryOperationsInterceptor" />
+	</util:list>
+
+</beans>
